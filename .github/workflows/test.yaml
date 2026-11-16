@@ -1,18 +1,53 @@
 name: Test React App
+
+env:
+  APP_NAME: "React App"
+
 on:
   push:
     branches: [ main ]
+    paths: [src/**]
   pull_request:
     branches: [ main ]
+    paths: [src/**]
+
 jobs:
-  test:
+  test:  
+    env:
+      NODE_VERSION: "18"
     runs-on: ubuntu-latest
-    steps:
+    
+    steps:    
+      - name: Step 1
+        if: github.event_name == 'push'
+        run: echo "This is a push event!"
+    
+      - name: Step 2
+        if: github.event_name == 'pull_request'
+        run: echo "This is a pull request event!"
+    
       - uses: actions/checkout@v3
+    
       - name: Use Node.js 18.x
         uses: actions/setup-node@v3
         with:
           node-version: 18.x
       - run: npm install
-      - run: npm test -- --watchAll=false
+    
+      - name: Run tests
+        if: contains(github.event.head_commit.message, '[skip-tests]') == false
+        run: npm test -- --watchAll=false
+    
+      - run: echo "Branch name: ${{ github.ref }}"
+      - run: echo "Commit SHA: ${{ github.sha }}"
+      - run: echo "Event triggered by: ${{ github.event_name }}"
+
+      - name: Display variables
+        env:
+          TEST_FLAG: "true"
+        run: |
+          echo "Repo name: ${{ env.APP_NAME }}"
+          echo "Node version: ${{ env.NODE_VERSION }}"
+          echo "Test flag: ${{ env.TEST_FLAG }}"
       
+      - run: echo "Extra flag: ${{ env.EXTRA_FLAG || 'none' }}"
